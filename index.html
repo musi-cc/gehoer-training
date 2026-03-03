@@ -583,6 +583,42 @@
     letter-spacing: 0.04em; font-family: var(--font-body);
   }
 
+  /* ── INFO BUTTON & MODAL ── */
+  .cat-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+  .cat-card-titles { flex: 1; }
+  .info-btn {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.55);
+    color: #fff; font-size: 0.72rem; font-weight: 700; font-family: Georgia, serif;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; line-height: 1; padding: 0; margin-top: 2px;
+  }
+  .info-btn:hover { background: rgba(255,255,255,0.35); border-color: #fff; }
+  .info-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(2px);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .info-modal-overlay.open { display: flex; }
+  .info-modal {
+    background: var(--surface); border: 1px solid #d0e4ed;
+    border-radius: var(--radius); max-width: 560px; width: 100%;
+    max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    padding: 28px 28px 24px; position: relative;
+    animation: modalIn 0.18s ease;
+  }
+  @keyframes modalIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .info-modal-close {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; font-size: 1.3rem; cursor: pointer;
+    color: var(--muted); padding: 2px 6px; border-radius: 4px; transition: color 0.15s, background 0.15s;
+  }
+  .info-modal-close:hover { color: var(--text); background: #eef4f7; }
+  .info-modal h2 { font-family: var(--font-head); font-weight: 300; font-size: 1.6rem; color: var(--accent); letter-spacing: 0.5px; margin-bottom: 14px; padding-right: 24px; }
+  .info-modal p { font-size: 0.9rem; color: var(--text); line-height: 1.7; margin-bottom: 12px; }
+  .info-modal p:last-child { margin-bottom: 0; }
+
   /* Description text */
   .question-desc {
     font-size: 0.8rem; color: rgba(255,255,255,0.75);
@@ -592,6 +628,15 @@
 </style>
 </head>
 <body>
+<!-- INFO MODAL -->
+<div class="info-modal-overlay" id="info-modal-overlay" onclick="closeInfoModal(event)">
+  <div class="info-modal" id="info-modal">
+    <button class="info-modal-close" onclick="closeInfoModalDirect()">&#x2715;</button>
+    <h2 id="info-modal-title"></h2>
+    <div id="info-modal-body"></div>
+  </div>
+</div>
+
 <div id="app">
 
   <div class="app-header">
@@ -607,7 +652,10 @@
   <!-- LESSONS -->
   <div id="screen-lessons" class="screen">
     <button class="back-btn" onclick="showHome()">← Zurück</button>
-    <div class="cat-title-lg" id="lessons-cat-title"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <div class="cat-title-lg" style="margin:0" id="lessons-cat-title"></div>
+      <button class="info-btn" id="lessons-info-btn" style="display:none;flex-shrink:0;background:none;border:1.5px solid var(--muted);color:var(--muted);width:20px;height:20px;border-radius:50%;font-size:0.7rem;font-weight:700;font-family:Georgia,serif;cursor:pointer;align-items:center;justify-content:center;padding:0;line-height:1;" onclick="openLessonInfoModal()" title="Anleitung">i</button>
+    </div>
     <div class="cat-desc" id="lessons-cat-desc"></div>
     <div id="lessons-list"></div>
   </div>
@@ -941,6 +989,19 @@ const DATA = [
   {
     id: 'intervals', title: 'Intervalle', icon: '🎵', color: '#e8b94f',
     desc: 'Lerne Intervalle zu unterscheiden',
+    lessonInfo: { title: 'Intervalle – Anleitung', paragraphs: [
+      'Dir werden zwei Töne vorgespielt. Deine Aufgabe ist es, das Intervall zwischen diesen beiden Tönen zu erkennen und aus den angebotenen Antworten die Richtige auszuwählen.',
+      'Beginne mit den einfachsten Übungen: dem Vergleich von Unison (beide Töne sind gleich) mit einem beliebigen Intervall, dann Oktave gegen Quinte, Oktave gegen Quarte usw. Die Aufgaben werden schrittweise anspruchsvoller, bis du schließlich sehr ähnlich klingende Intervalle wie die große Terz und große Sext oder Quint und Quart unterscheiden kannst.',
+      'Ein hilfreicher Trick: Verbinde die Intervalle mit bekannten Melodien. Die Quinte klingt wie die ersten zwei Töne von „Also sprach Zarathustra“, die kleine Terz wie der Beginn von „Smoke on the Water“, die große Terz wie die ersten Töne vom Donauwalzer. Solche Eselsbücken helfen dem Gehör, Intervalle schnell und sicher zu erkennen.',
+      'Nutze anfangs die Schummeln-Funktion, um die Töne einzeln zu hören – das erleichtert die Orientierung.'
+    ]},
+    info: { title: 'Was ist ein Intervall?', paragraphs: [
+      'Ein Intervall ist der Abstand zwischen zwei Tönen. Je weiter zwei Töne voneinander entfernt sind, desto größer ist das Intervall. Intervalle haben Namen, die sich aus der Anzahl der Tonstufen ableiten: Eine Sekunde ist der Abstand zwischen zwei benachbarten Tönen (z. B. C und D), eine Terz überspringt einen Ton (z. B. C und E), eine Quinte umspannt fünf Tonstufen (z. B. C und G).',
+      'Die Namen kommen von lateinischen Ordnungszahlen: Prime (1), Sekunde (2), Terz (3), Quarte (4), Quinte (5), Sexte (6), Septime (7), Oktave (8).',
+      'Prime, Quarte, Quinte und Oktave sind reine Intervalle. Bei Sekunde, Terz, Sext und Septime werden kleine und große Intervalle unterschieden. Dazu kommt noch der sehr wichtige Tritonus.',
+      'Wichtig sind hier vor allem die große und die kleine Terz, die sich um einen Halbton unterscheiden und deutlich unterschiedlich klingen: Die große Terz klingt hell und offen und ist für den Dur-Akkord und die Dur-Tonleiter prägend. Die kleine Terz klingt enger und oft etwas schwermütiger. Sie bestimmt den Moll-Akkord und die Moll-Tonleiter.',
+      'Exotischere Intervalle wie die übermäßige Prime oder die verminderte Septime haben wir ebenso weggelassen wie die Intervalle außerhalb der ersten Oktave.'
+    ]},
     subcategories: [
       { name: 'Grundlagen', lessons: [
         // Lesson 1a: Unison or any interval (uses ALL intervals including octave)
@@ -972,6 +1033,19 @@ const DATA = [
   {
     id: 'chords', title: 'Akkorde', icon: '🎹', color: '#7b6ef6',
     desc: 'Erkenne Akkordtypen und Klangfarben',
+    lessonInfo: { title: 'Akkorde – Anleitung', paragraphs: [
+      'Dir wird ein Akkord vorgespielt. Deine Aufgabe ist es, den Akkordtyp zu erkennen und aus den angebotenen Antworten die richtige auszuwählen.',
+      'Beginne mit dem grundlegenden Unterschied zwischen Dur und Moll – das ist die wichtigste und häufigste Unterscheidung in der Musik. Danach kommen Sus-Akkorde, verminderte und übermäßige Dreiklänge, und schließlich die klangreich gefärbten Vierklänge und Mehrklänge.',
+      'Mit der Zeit entwickelst du ein Gespür dafür, wie sich verschiedene Akkordtypen „anfühlen“: Dur klingt stabil und klar, Moll weicher und nachdenklicher, verminderte Akkorde angespannt, übermäßige seltsam schwebend. Nutze die Schummeln-Funktion, um die einzelnen Töne des Akkords zu hören oder dir den Grundton als Orientierung einspielen zu lassen.'
+    ]},
+    info: { title: 'Was ist ein Akkord?', paragraphs: [
+      'Ein Akkord entsteht, wenn drei oder mehr Töne unterschiedlicher Höhe gleichzeitig erklingen.',
+      'Die einfachste Form ist der Dreiklang: Er besteht aus einem Grundton, einer Terz und einer Quinte – also zum Beispiel C, E und G für einen C-Dur-Akkord. Anders betrachtet: aus dem Grundton, darüber eine Terz und über dieser eine weitere Terz. Zwei Terzen ergeben eine Quint. Da es zwei verschiedene Terzen gibt – eine große und eine kleine – ergeben sich vier Kombinationen: Große Terz + kleine Terz: Dur-Dreiklang. Kleine Terz + große Terz: Moll-Dreiklang. Kleine Terz + kleine Terz: verminderter Dreiklang. Große Terz + große Terz: übermäßiger Dreiklang.',
+      'Weiters kann die erste Terz noch durch eine Sekunde oder eine Quart ersetzt werden. Daraus ergeben sich der sus2- bzw. der sus4-Dreiklang.',
+      'Die Abstände zwischen diesen Tönen bestimmen den Charakter des Akkords: Dur klingt hell und offen, Moll klingt dunkler und ernster. Verminderte und übermäßige Akkorde klingen instabil und spannungsreich.',
+      'Erweitert man einen Dreiklang um eine weitere Terz, entsteht ein Vierklang – etwa ein Dur7- oder Moll7-Akkord. Noch weitere Terzen ergeben Fünf- und Mehrklänge wie den Dur9 oder Dur11. Diese klingen zunehmend komplex und färbig.',
+      'Akkorde sind das harmonische Rückgrat der Musik. Sie geben einer Melodie ihren emotionalen Kontext und bestimmen, ob ein Stück fröhlich, traurig, spannungsvoll oder ruhig wirkt.'
+    ]},
     subcategories: [
       { name: 'Dreiklänge', lessons: [
         { id: 'ch_durMoll',     name: 'Dur oder Moll?',             type:'chord', options:['Dur','Moll'] },
@@ -997,6 +1071,17 @@ const DATA = [
   {
     id: 'melodies', title: 'Melodien', icon: '🎼', color: '#4caf82',
     desc: 'Höre und erkenne Tonfolgen',
+    lessonInfo: { title: 'Melodien – Anleitung', paragraphs: [
+      'Dir wird eine kurze Melodie vorgespielt. Vor der Melodie erklingt kurz die Harmonik der Tonart als weicher Streicherklang – sie gibt dir die tonale Orientierung und hilft deinem Ohr, die nachfolgenden Töne richtig einzuordnen.',
+      'Deine Aufgabe ist es, die gehörten Töne in der richtigen Reihenfolge auf der Klaviatur einzugeben.',
+      'Beginne mit den einfachen Übungen mit drei Tönen in Dur oder Moll, bevor du dich zu längeren Melodien vorarbeitest. Alle Töne befinden sich innerhalb einer Oktave – von der ersten bis zur achten Stufe der Tonleiter – und die Klaviatur zeigt dir genau diesen Bereich.',
+      'Schalte Schummeln ein, um die Melodie auch in langsamem Tempo zu hören – das erleichtert es, einzelne Töne herauszuhören. Mit „Naiiinn!!“ kannst du den zuletzt eingegebenen Ton wieder rükgängig machen, wenn du dich vertippt hast.',
+      'Diese Übung ist schon recht schwierig – aber intuitiv können das alle Menschen, die eine Melodie mitsingen oder -summen. Und das ist auch die sicherste Art, einen Ton ausfindig zu machen: indem man ihn summt und dann erst auf der Klaviatur sucht.'
+    ]},
+    info: { title: 'Was ist eine Melodie?', paragraphs: [
+      'Eine Melodie ist eine Folge von Tönen, die nacheinander erklingen und zusammen eine musikalische Linie ergeben. Im Gegensatz zum Akkord – bei dem mehrere Töne gleichzeitig klingen – entfaltet sich die Melodie in der Zeit. Sie ist das, was man summt, pfeift oder singt: die erkennbare, einprägsame Stimme eines Musikstücks.',
+      'Melodien bewegen sich innerhalb einer Tonleiter – einer geordneten Auswahl von Tönen, die zusammen eine bestimmte Klangfarbe erzeugen. Eine Dur-Tonleiter klingt hell und ausgewogen, eine Moll-Tonleiter dunkler und gefühlvoller. Die meisten Melodien, die wir kennen, sind diatonisch – das heißt, sie verwenden ausschließlich die Töne einer solchen Tonleiter.'
+    ]},
     subcategories: [
       { name: 'Diatonisch (Tonleiter)', lessons: [
         { id: 'mel_dur3',    name: '3 Töne – Dur',              type:'melody', scale:'dur',  noteCount:3 },
@@ -1017,6 +1102,17 @@ const DATA = [
   {
     id: 'progressions', title: 'Akkordfolgen', icon: '🎸', color: '#e05c5c',
     desc: 'Erkenne harmonische Fortschreitungen',
+    lessonInfo: { title: 'Akkordfolgen – Anleitung', paragraphs: [
+      'Dir werden mehrere Akkorde nacheinander vorgespielt. Deine Aufgabe ist es, die Stufen zu erkennen, auf denen sich diese Akkorde in Beziehung zur Grundtonart befinden.',
+      'Beginne mit den zweistufigen Progressionen, bei denen du zwischen zwei möglichen Akkordfolgen wählst. Mit wachsender Übung kommen dreistufige Progressionen hinzu, bei denen du die Reihenfolge der Stufen frei eingibst. Die freien Übungen mit allen sieben Stufen sind die anspruchsvollste Form.',
+      'Alle Akkorde erklingen mit stimmführungsoptimierter Lage – das heißt, sie bewegen sich möglichst wenig von Akkord zu Akkord, so wie es ein erfahrener Pianist spielen würde.',
+      'Schalte Schummeln ein, um dir die erste Stufe der Tonart einspielen zu lassen – sie dient als Anker, von dem aus du die anderen Stufen besser einordnen kannst. Ebenso kannst du dir die Akkorde einzeln vorspielen lassen, um jeden für sich zu analysieren.',
+      'Achtung: Frustrationsgefahr! Diese Aufgabe ist schon ziemlich schwierig – da braucht es einiges an Übung und Erfahrung! Hast du aber diese Stufe geschafft, kannst du dir bereits selbst Musikstücke „heruntenhören“ und dazu spielen. Das ist die Meisterklasse!'
+    ]},
+    info: { title: 'Was ist eine Akkordfolge?', paragraphs: [
+      'Eine Akkordfolge – auch Harmoniefolge oder Progression genannt – ist eine Abfolge von Akkorden, die nacheinander erklingen und zusammen die harmonische Bewegung eines Musikstücks erzeugen. Akkordfolgen sind das Fundament fast jeder Musik: Sie geben einer Melodie ihren harmonischen Kontext, erzeugen Spannung und Entspannung und vermitteln dem Hörer ein Gefühl von Bewegung und Ankunft.',
+      'In der Musiktheorie werden die Akkorde einer Tonart mit römischen Ziffern bezeichnet – I, II, III, IV, V, VI, VII – je nachdem, auf welcher Stufe der Tonleiter sie aufgebaut sind. Die erste Stufe (I) ist der Heimatakkord, die fünfte Stufe (V) erzeugt Spannung, die sich zur ersten Stufe hin auflöst. Diese Beziehungen zwischen den Stufen sind in der westlichen Musik allgegenwärtig – von Bach bis zu den Beatles.'
+    ]},
     subcategories: [
       { name: 'Zweistufige Progressionen', lessons: [
         { id: 'prog_I_IV_V',      name: 'I–IV oder I–V?',         type:'progression', options:[['I','IV'],['I','V']] },
@@ -1035,11 +1131,13 @@ const DATA = [
         { id: 'prog_I_IV_V_II_V', name: 'I–IV–V oder I–II–V?',        type:'progression', options:[['I','IV','V'],['I','II','V']] },
       ]},
       { name: 'Alle Stufen (Dreiklänge)', lessons: [
+        { id: 'prog_i_what3', name: 'I – what?!', type:'progression_i_what', use7:false },
         { id: 'prog_all3_2', name: 'Alle Stufen – 2 Akkorde', type:'progression_free', chordCount:2, use7:false },
         { id: 'prog_all3_3', name: 'Alle Stufen – 3 Akkorde', type:'progression_free', chordCount:3, use7:false },
         { id: 'prog_all3_4', name: 'Alle Stufen – 4 Akkorde', type:'progression_free', chordCount:4, use7:false },
       ]},
       { name: 'Alle Stufen (Vierklänge)', lessons: [
+        { id: 'prog_i_what7', name: 'I – what?!', type:'progression_i_what', use7:true },
         { id: 'prog_all7_2', name: 'Alle Stufen (7) – 2 Akkorde', type:'progression_free', chordCount:2, use7:true },
         { id: 'prog_all7_3', name: 'Alle Stufen (7) – 3 Akkorde', type:'progression_free', chordCount:3, use7:true },
         { id: 'prog_all7_4', name: 'Alle Stufen (7) – 4 Akkorde', type:'progression_free', chordCount:4, use7:true },
@@ -1206,6 +1304,20 @@ function generateQuestion(lesson) {
     correctAnswer = progression;
     questionText = 'Welche Akkordfolge hörst du?';
 
+  } else if (lesson.type === 'progression_i_what') {
+    // Always: I (Dur triad) then a random Dur or Moll chord (or 7th chord if use7)
+    const iFormula = CHORDS['Dur'];
+    const iVoiced = buildChordNotes(iFormula, root);
+    const degMap = lesson.use7 ? DEGREES_7 : SCALE_DEGREES;
+    const degKeys = Object.keys(degMap).filter(k => k !== 'I');
+    const randDeg = pick(degKeys);
+    const d = degMap[randDeg];
+    const randFormula = CHORDS[d.chord];
+    const randVoiced = voiceLead(randFormula, root + d.semis, iVoiced);
+    notes = [iVoiced, randVoiced];
+    correctAnswer = randDeg;
+    questionText = 'Welche Stufe folgt auf die I?';
+
   } else if (lesson.type === 'progression_free') {
     const degMap = lesson.use7 ? DEGREES_7 : SCALE_DEGREES;
     const degKeys = Object.keys(degMap);
@@ -1263,7 +1375,8 @@ function pushBtnHTML(id, label, onclick, disabled=false) {
 function onSchummelnToggle(checked) {
   schummelnOn = checked;
   const type = currentLesson ? currentLesson.type : '';
-  const isProgression = type.startsWith('progression');
+  const isIWhat = type === 'progression_i_what';
+  const isProgression = type.startsWith('progression') && !isIWhat;
   const isMelody = type === 'melody';
   const isChord = type === 'chord';
 
@@ -1308,10 +1421,11 @@ function buildPlayButtons(lesson) {
   const type = lesson.type;
   const isInterval = type === 'interval' || type === 'interval_binary';
   const isChord = type === 'chord';
-  const isProgression = type.startsWith('progression');
+  const isIWhat = type === 'progression_i_what';
+  const isProgression = type.startsWith('progression') && !isIWhat;
   const isMelody = type === 'melody';
 
-  // Descriptions — „Optional…" starts on new line, no „Schummeln" in text
+  // Descriptions
   if (descEl) {
     if (isInterval)
       descEl.innerHTML = 'Du bekommst zwei Töne vorgespielt. Erkenne das Intervall!<br>Optional kannst Du Dir die Töne auch einzeln vorspielen lassen.';
@@ -1319,6 +1433,8 @@ function buildPlayButtons(lesson) {
       descEl.innerHTML = 'Du bekommst einen Akkord vorgespielt – wähle den richtigen aus!<br>Optional kannst du dir den Grundton des Akkords einspielen lassen. Ebenso kannst Du Dir die Töne auch einzeln vorspielen lassen.';
     else if (isMelody)
       descEl.innerHTML = 'Spiele die Melodie nach.<br>Optional kannst Du die Möglichkeit zuschalten, falsche Eingaben wieder zurückzunehmen.';
+    else if (isIWhat)
+      descEl.innerHTML = 'Du bekommst zuerst die erste Stufe, dann einen weiteren Akkord vorgespielt.<br>Optional kannst du dir die Töne auch einzeln vorspielen lassen.';
     else if (isProgression)
       descEl.innerHTML = 'Du bekommst mehrere Akkorde hintereinander vorgespielt. Erkenne die Stufen, auf denen sich diese Akkorde in Beziehung zur Grundtonart befinden.<br>Optional kannst du dir die erste Stufe der Tonart einspielen lassen. Ebenso kannst Du Dir die Töne auch einzeln vorspielen lassen.';
     else descEl.innerHTML = '';
@@ -1405,7 +1521,7 @@ function playCurrentChord() {
   const ctx = getCtx();
   const now = ctx.currentTime;
   const lesson = q.lesson;
-  const isProgression = lesson.type === 'progression' || lesson.type === 'progression_free' || lesson.type === 'progression_text_input';
+  const isProgression = lesson.type === 'progression' || lesson.type === 'progression_free' || lesson.type === 'progression_text_input' || lesson.type === 'progression_i_what';
 
   if (isProgression) {
     let t = now;
@@ -1423,7 +1539,7 @@ function playCurrentArp() {
   const q = questions[currentQIndex];
   if (!q) return;
   const lesson = q.lesson;
-  if (lesson.type === 'progression' || lesson.type === 'progression_free' || lesson.type === 'progression_text_input') {
+  if (lesson.type === 'progression' || lesson.type === 'progression_free' || lesson.type === 'progression_text_input' || lesson.type === 'progression_i_what') {
     const ctx = getCtx();
     const now = ctx.currentTime;
     let t = now;
@@ -1481,9 +1597,15 @@ function renderHome() {
     const avgs = allLessons.map(l => avgScore(l.id)).filter(v => v !== null);
     const overallAvg = avgs.length ? Math.round(avgs.reduce((a,b) => a+b, 0) / avgs.length) : 0;
 
+    const infoBtn = cat.info ? `<button class="info-btn" onclick="event.stopPropagation();openInfoModal(${ci})" title="Info">i</button>` : '';
     return `<div class="cat-card" onclick="showLessons(${ci})">
-      <div class="cat-icon">${cat.icon}</div>
-      <div class="cat-title">${cat.title}</div>
+      <div class="cat-card-header">
+        <div class="cat-card-titles">
+          <div class="cat-icon">${cat.icon}</div>
+          <div class="cat-title">${cat.title}</div>
+        </div>
+        ${infoBtn}
+      </div>
       <div class="cat-sub">${cat.desc}</div>
       <div style="margin-top:16px">
         <div class="heatometer-section">
@@ -1498,6 +1620,33 @@ function renderHome() {
   }).join('');
 }
 
+// ─── INFO MODAL ───
+function openLessonInfoModal() {
+  const cat = DATA[currentCatIndex];
+  if (!cat || !cat.lessonInfo) return;
+  document.getElementById('info-modal-title').textContent = cat.lessonInfo.title;
+  document.getElementById('info-modal-body').innerHTML = cat.lessonInfo.paragraphs.map(function(p){ return '<p>' + p + '</p>'; }).join('');
+  document.getElementById('info-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openInfoModal(catIndex) {
+  const cat = DATA[catIndex];
+  if (!cat || !cat.info) return;
+  document.getElementById('info-modal-title').textContent = cat.info.title;
+  document.getElementById('info-modal-body').innerHTML = cat.info.paragraphs.map(function(p){ return '<p>' + p + '</p>'; }).join('');
+  document.getElementById('info-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeInfoModal(e) {
+  if (e.target === document.getElementById('info-modal-overlay')) closeInfoModalDirect();
+}
+function closeInfoModalDirect() {
+  document.getElementById('info-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeInfoModalDirect(); });
+
 function showHome() {
   renderHome();
   showScreen('home');
@@ -1508,6 +1657,8 @@ function showLessons(catIndex) {
   currentCatIndex = catIndex;
   const cat = DATA[catIndex];
   document.getElementById('lessons-cat-title').textContent = cat.icon + ' ' + cat.title;
+  const lessonInfoBtn = document.getElementById('lessons-info-btn');
+  if (lessonInfoBtn) lessonInfoBtn.style.display = cat.lessonInfo ? 'flex' : 'none';
   document.getElementById('lessons-cat-desc').textContent = cat.desc;
 
   const list = document.getElementById('lessons-list');
@@ -1590,7 +1741,45 @@ function renderQuestion() {
     renderProgressionAnswer(ac, q);
   } else if (lesson.type === 'progression_free') {
     renderProgressionFreeAnswer(ac, q);
+  } else if (lesson.type === 'progression_i_what') {
+    renderIWhatAnswer(ac, q);
   }
+}
+
+// ─── I–WHAT ANSWER ───
+function renderIWhatAnswer(container, q) {
+  const degMap = q.lesson.use7 ? DEGREES_7 : SCALE_DEGREES;
+  const degKeys = Object.keys(degMap).filter(function(k) { return k !== 'I'; });
+  container.innerHTML =
+    '<div class="chord-input-row">' +
+      '<div class="chord-slot">' +
+        '<div class="chord-slot-label">I</div>' +
+        '<select class="chord-slot-select" disabled><option>I</option></select>' +
+      '</div>' +
+      '<div class="chord-slot">' +
+        '<div class="chord-slot-label">Akkord 2</div>' +
+        '<select class="chord-slot-select" id="iwhat-slot">' +
+          '<option value="">?</option>' +
+          degKeys.map(function(k) { return '<option value="' + k + '">' + k + '</option>'; }).join('') +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<button class="submit-btn" onclick="checkIWhatAnswer()">Prüfen</button>';
+}
+
+function checkIWhatAnswer() {
+  if (answered) return;
+  const q = questions[currentQIndex];
+  const el = document.getElementById('iwhat-slot');
+  const choice = el ? el.value : '';
+  if (!choice) return;
+  const isCorrect = choice === q.correctAnswer;
+  answered = true;
+  if (el) {
+    el.disabled = true;
+    el.classList.add(isCorrect ? 'correct' : 'wrong');
+  }
+  showFeedback(isCorrect, isCorrect ? null : q.correctAnswer);
 }
 
 // ─── BUTTON ANSWERS ───
